@@ -23,36 +23,38 @@ pub fn main() {
 // Part 1
 pub fn solve_p1(lines: List(String)) -> String {
   // Get list of digits in file as ints
-  list.map(lines, extract_numerals)
   // Create a two digit number from first and last digits (Result)
-  |> list.map(two_digit_result)
   // Turn list of results into result of list
-  |> result.all
   // Sum up list
-  |> result.map(list.fold(_, from: 0, with: fn(b, a) { b + a }))
   // Turn sum into string
-  |> result.map(int.to_string)
   // If there was an Error report it
+
+  list.map(lines, extract_numerals)
+  |> list.map(two_digit_result)
+  |> result.all
+  |> result.map(list.fold(_, from: 0, with: fn(b, a) { b + a }))
+  |> result.map(int.to_string)
   |> result.unwrap("error running part 1")
 }
 
 // Part 2
 pub fn solve_p2(lines: List(String)) -> String {
   // Extract digits and number words as list of integers
-  list.map(lines, extract_numbers)
   // Create a two digit number from first and last digits (Result)
-  |> list.map(two_digit_result)
   // Turn list of results into result of list
-  |> result.all
   // Sum up list
-  |> result.map(list.fold(_, from: 0, with: fn(b, a) { b + a }))
   // Turn sum into string
-  |> result.map(int.to_string)
   // If there was an Error report it
+
+  list.map(lines, extract_numbers)
+  |> list.map(two_digit_result)
+  |> result.all
+  |> result.map(list.fold(_, from: 0, with: fn(b, a) { b + a }))
+  |> result.map(int.to_string)
   |> result.unwrap("error running part 2")
 }
 
-pub fn extract_numerals(line: String) -> List(Int) {
+fn extract_numerals(line: String) -> List(Int) {
   // Take all the UTF codepoints and only keep those for the integers 0-9
   let characters = string.to_utf_codepoints(line)
   let codepoints =
@@ -65,7 +67,7 @@ pub fn extract_numerals(line: String) -> List(Int) {
   list.map(codepoints, fn(g) { string.utf_codepoint_to_int(g) - 48 })
 }
 
-pub fn two_digit_result(numbers: List(Int)) -> Result(Int, Nil) {
+fn two_digit_result(numbers: List(Int)) -> Result(Int, Nil) {
   // Get the first and last elements of list (may be the same)
   // and create a two digit number from them
   use f <- result.try(list.first(numbers))
@@ -73,7 +75,7 @@ pub fn two_digit_result(numbers: List(Int)) -> Result(Int, Nil) {
   Ok(f * 10 + l)
 }
 
-pub fn extract_numbers(line: String) -> List(Int) {
+fn extract_numbers(line: String) -> List(Int) {
   // This is a hack to put digits within the number words while allowing
   // for these words to overlap, such as oneight or eighthree.
   let line = string.replace(line, "one", "o1e")
