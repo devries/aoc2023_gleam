@@ -3,12 +3,12 @@ import gleam/io
 import gleam/list
 import gleam/result
 import gleam/string
-import simplifile
+import aoc2023_gleam
 
 pub fn main() {
-  let filename = "day01.txt"
+  let filename = "inputs/day01.txt"
 
-  let lines_result = read_lines(from: filename)
+  let lines_result = aoc2023_gleam.read_lines(from: filename)
   case lines_result {
     Ok(lines) -> {
       // If the file was converting into a list of lines
@@ -50,15 +50,6 @@ pub fn solve_p2(lines: List(String)) -> String {
   |> result.map(int.to_string)
   // If there was an Error report it
   |> result.unwrap("error running part 2")
-}
-
-pub fn read_lines(
-  from filepath: String,
-) -> Result(List(String), simplifile.FileError) {
-  simplifile.read(from: filepath)
-  // Be sure to get rid of final newline
-  |> result.map(string.trim)
-  |> result.map(string.split(_, "\n"))
 }
 
 pub fn extract_numerals(line: String) -> List(Int) {
