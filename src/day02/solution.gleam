@@ -37,12 +37,16 @@ pub fn solve_p1(lines: List(String)) -> String {
   // Sum up indecies of each possible game, or return error
   case possibles_result {
     Ok(possibles) -> {
-      list.index_fold(possibles, from: 0, with: fn(acc, poss, idx) {
-        case poss {
-          True -> acc + idx + 1
-          False -> acc
-        }
-      })
+      list.index_fold(
+        possibles,
+        from: 0,
+        with: fn(acc: Int, poss: Bool, idx: Int) -> Int {
+          case poss {
+            True -> acc + idx + 1
+            False -> acc
+          }
+        },
+      )
       |> int.to_string
     }
     Error(val) -> val
@@ -59,7 +63,7 @@ pub fn solve_p2(lines: List(String)) -> String {
     |> result.map(list.fold(
       _,
       from: 0,
-      with: fn(acc, d: Draw) {
+      with: fn(acc: Int, d: Draw) -> Int {
         let power = d.red * d.green * d.blue
         acc + power
       },
@@ -88,7 +92,10 @@ fn parse_game(line: String) -> Result(List(Draw), String) {
 /// Parse a draw into a draw record
 fn parse_draw(draw: String) -> Result(Draw, String) {
   string.split(draw, ", ")
-  |> list.try_fold(from: Draw(0, 0, 0), with: fn(b, a) {
+  |> list.try_fold(from: Draw(0, 0, 0), with: fn(b: Draw, a: String) -> Result(
+    Draw,
+    String,
+  ) {
     case string.split(a, " ") {
       [n, color] -> {
         let count_result = int.parse(n)
