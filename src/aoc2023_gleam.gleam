@@ -16,3 +16,10 @@ pub fn read_lines(
   |> result.map(string.trim)
   |> result.map(string.split(_, "\n"))
 }
+
+pub fn solution_or_error(v: Result(String, String)) -> String {
+  case v {
+    Ok(solution) -> solution
+    Error(error) -> "ERROR: " <> error
+  }
+}

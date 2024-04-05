@@ -11,11 +11,11 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green"
 pub fn part1_test() {
   let lines = string.split(testinput, "\n")
   solution.solve_p1(lines)
-  |> should.equal("8")
+  |> should.equal(Ok("8"))
 }
 
 pub fn part2_test() {
   let lines = string.split(testinput, "\n")
   solution.solve_p2(lines)
-  |> should.equal("2286")
+  |> should.equal(Ok("2286"))
 }

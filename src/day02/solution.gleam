@@ -13,8 +13,8 @@ pub fn main() {
     Ok(lines) -> {
       // If the file was converting into a list of lines
       // successfully then run each part of the problem
-      io.println("Part 1: " <> solve_p1(lines))
-      io.println("Part 2: " <> solve_p2(lines))
+      io.println("Part 1: " <> aoc2023_gleam.solution_or_error(solve_p1(lines)))
+      io.println("Part 2: " <> aoc2023_gleam.solution_or_error(solve_p2(lines)))
     }
     Error(_) -> io.println("Error reading file")
   }
@@ -27,53 +27,42 @@ type Draw {
 const max = Draw(red: 12, green: 13, blue: 14)
 
 // Part 1
-pub fn solve_p1(lines: List(String)) -> String {
+pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   // Determine if each game is possible
-  let possibles_result =
-    list.map(lines, parse_game)
-    |> result.all
-    |> result.map(list.map(_, possible_game))
+  use games <- result.try(result.all(list.map(lines, parse_game)))
+  let possibles = list.map(games, possible_game)
 
-  // Sum up indecies of each possible game, or return error
-  case possibles_result {
-    Ok(possibles) -> {
-      list.index_fold(
-        possibles,
-        from: 0,
-        with: fn(acc: Int, poss: Bool, idx: Int) -> Int {
-          case poss {
-            True -> acc + idx + 1
-            False -> acc
-          }
-        },
-      )
-      |> int.to_string
-    }
-    Error(val) -> val
-  }
+  // Sum ip indecies of each possible game or return error
+  let solution =
+    list.index_fold(
+      possibles,
+      from: 0,
+      with: fn(acc: Int, poss: Bool, idx: Int) -> Int {
+        case poss {
+          True -> acc + idx + 1
+          False -> acc
+        }
+      },
+    )
+
+  // Return solution as string
+  Ok(int.to_string(solution))
 }
 
 // Part 2
-pub fn solve_p2(lines: List(String)) -> String {
-  // Get a result with the sum of powers
-  let pipe_result =
-    list.map(lines, parse_game)
-    |> result.all
-    |> result.map(list.map(_, fewest_cubes))
-    |> result.map(list.fold(
-      _,
-      from: 0,
-      with: fn(acc: Int, d: Draw) -> Int {
-        let power = d.red * d.green * d.blue
-        acc + power
-      },
-    ))
+pub fn solve_p2(lines: List(String)) -> Result(String, String) {
+  // Find fewest cubes required for each game
+  use games <- result.try(result.all(list.map(lines, parse_game)))
+  let mincubes = list.map(games, fewest_cubes)
 
-  // convert to string if ok, otherwise return error
-  case pipe_result {
-    Ok(n) -> int.to_string(n)
-    Error(val) -> val
-  }
+  // Calculate power
+  let solution =
+    list.fold(mincubes, from: 0, with: fn(acc: Int, d: Draw) -> Int {
+      let power = d.red * d.green * d.blue
+      acc + power
+    })
+
+  Ok(int.to_string(solution))
 }
 
 /// Turn a game into a list of bag draws
