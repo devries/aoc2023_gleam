@@ -24,9 +24,10 @@ pub fn main() {
 // Part 1
 pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   list.map(lines, parse_line)
-  |> list.map(score)
+  |> list.map(result.map(_, score))
   |> result.all
-  |> result.map(fn(a: List(Int)) -> String { int.to_string(int.sum(a)) })
+  |> result.map(int.sum)
+  |> result.map(int.to_string)
 }
 
 // Part 2
@@ -38,6 +39,7 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   |> result.map(int.to_string)
 }
 
+// Parse a line of the input
 fn parse_line(line: String) -> Result(#(List(Int), List(Int)), String) {
   // Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
   case string.split(line, on: ": ") {
@@ -56,6 +58,7 @@ fn parse_line(line: String) -> Result(#(List(Int), List(Int)), String) {
   }
 }
 
+// Parse a space separated list of numbers
 fn parse_numberlist(numberlist: String) -> Result(List(Int), String) {
   string.split(numberlist, " ")
   |> list.filter(fn(s: String) { s != "" })
@@ -66,6 +69,8 @@ fn parse_numberlist(numberlist: String) -> Result(List(Int), String) {
   )
 }
 
+// Find the intersection of two lists (converts to sets and
+// back again)
 fn intersection(a: List(Int), b: List(Int)) -> List(Int) {
   let a_set = set.from_list(a)
   let b_set = set.from_list(b)
@@ -73,30 +78,29 @@ fn intersection(a: List(Int), b: List(Int)) -> List(Int) {
   set.to_list(set.intersection(a_set, b_set))
 }
 
-fn score(tpl: Result(#(List(Int), List(Int)), String)) -> Result(Int, String) {
-  case tpl {
-    Ok(#(a, b)) -> {
-      let match_numbers = intersection(a, b)
-      let matches = list.length(match_numbers)
-      case matches {
-        0 -> Ok(0)
-        _ -> Ok(int.bitwise_shift_left(1, matches - 1))
-      }
-    }
-    Error(v) -> Error(v)
+// Score a card using the logic from part 1
+fn score(card: #(List(Int), List(Int))) -> Int {
+  case count_matches(card) {
+    0 -> 0
+    n -> int.bitwise_shift_left(1, n - 1)
   }
 }
 
+// Count the number of matching values on a card
 fn count_matches(card: #(List(Int), List(Int))) -> Int {
   let match_numbers = intersection(card.0, card.1)
   list.length(match_numbers)
 }
 
+// For each card count the matches and make a list of tuples of
+// the number of matches on a card and the number of cards in the deck
 fn initialize_count(cards: List(#(List(Int), List(Int)))) -> List(#(Int, Int)) {
   list.map(cards, count_matches)
   |> list.map(fn(i: Int) -> #(Int, Int) { #(i, 1) })
 }
 
+// Expand the list of matches and card counts with the cards won for
+// each scratch card, counting the cards as you iterate through the list
 fn expand_and_count(card_values: List(#(Int, Int)), acc: Int) -> Int {
   case card_values {
     [] -> acc
