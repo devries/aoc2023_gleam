@@ -24,9 +24,13 @@ pub fn main() {
 
 // Part 1
 pub fn solve_p1(lines: List(String)) -> Result(String, String) {
+  // retrieve board
   let board = parse_schematic(lines)
+
+  // create a dictionary of positions for symbols
   let symbols = symbol_dict(board)
 
+  // Separate out the numbers in the board
   let numbers =
     list.filter(board, fn(val) {
       case val {
@@ -35,14 +39,18 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
       }
     })
 
+  // Get those numbers adjacent to symbols 
   let part_numbers = values_adjacent(numbers, symbols)
 
+  // sum up the part numbers
   Ok(int.to_string(int.sum(part_numbers)))
 }
 
 // Part 2
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   let board = parse_schematic(lines)
+
+  // Get only the gear symbols from the board
   let gears =
     list.filter(board, fn(val) -> Bool {
       case val {
@@ -51,6 +59,7 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
       }
     })
 
+  // Get the numbers from the board
   let numbers =
     list.filter(board, fn(val) {
       case val {
@@ -59,15 +68,14 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
       }
     })
 
+  // Find gear ratios for every gear, getting an Error if there
+  // are not exactly two numbers adjacent to the gear, then
+  // ignore the errors
   let ratios =
-    list.map(gears, gear_ratios(_, numbers))
-    |> list.map(fn(values: List(Int)) -> Int {
-      case values {
-        [a, b] -> a * b
-        _ -> 0
-      }
-    })
+    list.map(gears, gear_ratio(_, numbers))
+    |> result.values
 
+  // sum up the ratios
   Ok(int.to_string(int.sum(ratios)))
 }
 
@@ -208,11 +216,15 @@ fn values_adjacent(
   |> result.values
 }
 
-// Find the elements around a particular element
-fn gear_ratios(
+// Find the numbers around an element and if there are two
+// then multiply together to get the gear ratio.
+fn gear_ratio(
   potential: #(Point, Point, Value),
   numbers: List(#(Point, Point, Value)),
-) -> List(Int) {
+) -> Result(Int, String) {
   let gear = dict.from_list([#(potential.0, potential.2)])
-  values_adjacent(numbers, gear)
+  case values_adjacent(numbers, gear) {
+    [a, b] -> Ok(a * b)
+    _ -> Error("Not a gear")
+  }
 }
