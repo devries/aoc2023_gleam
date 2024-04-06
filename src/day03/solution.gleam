@@ -122,6 +122,13 @@ fn consolidate(
   holding: List(#(Point, Point, Value)),
 ) -> List(#(Point, Point, Value)) {
   case input {
+    // When there are no more points to consolidate
+    [] -> {
+      case current {
+        None -> holding
+        Some(c) -> [#(spt, lpt, Number(c)), ..holding]
+      }
+    }
     // match a number square
     [#(p, Number(n)), ..rest] -> {
       case p.y == spt.y && p.x == lpt.x + 1 {
@@ -141,6 +148,7 @@ fn consolidate(
           }
       }
     }
+    // Match a symbol square
     [#(p, Symbol(s)), ..rest] -> {
       case current {
         None -> consolidate(rest, None, p, p, [#(p, p, Symbol(s)), ..holding])
@@ -150,12 +158,6 @@ fn consolidate(
             #(spt, lpt, Number(c)),
             ..holding
           ])
-      }
-    }
-    [] -> {
-      case current {
-        None -> holding
-        Some(c) -> [#(spt, lpt, Number(c)), ..holding]
       }
     }
   }
