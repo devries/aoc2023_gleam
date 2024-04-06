@@ -35,23 +35,40 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
       }
     })
 
-  let part_numbers =
-    list.filter(numbers, fn(val) -> Bool {
-      has_symbol(surrounding_points(val), symbols)
-    })
-    |> list.map(fn(val) -> Int {
-      case val {
-        #(_, _, Number(n)) -> n
-        _ -> 0
-      }
-    })
+  let part_numbers = values_adjacent(numbers, symbols)
 
   Ok(int.to_string(int.sum(part_numbers)))
 }
 
 // Part 2
-pub fn solve_p2(_lines: List(String)) -> Result(String, String) {
-  Error("Unimplemented")
+pub fn solve_p2(lines: List(String)) -> Result(String, String) {
+  let board = parse_schematic(lines)
+  let gears =
+    list.filter(board, fn(val) -> Bool {
+      case val {
+        #(_, _, Symbol("*")) -> True
+        _ -> False
+      }
+    })
+
+  let numbers =
+    list.filter(board, fn(val) {
+      case val {
+        #(_, _, Number(_)) -> True
+        _ -> False
+      }
+    })
+
+  let ratios =
+    list.map(gears, gear_ratios(_, numbers))
+    |> list.map(fn(values: List(Int)) -> Int {
+      case values {
+        [a, b] -> a * b
+        _ -> 0
+      }
+    })
+
+  Ok(int.to_string(int.sum(ratios)))
 }
 
 // Parse map
@@ -149,6 +166,7 @@ fn symbol_dict(
   |> dict.from_list
 }
 
+// Find points surrounding an element
 fn surrounding_points(element: #(Point, Point, Value)) -> List(Point) {
   let start = element.0
   let end = element.1
@@ -162,6 +180,7 @@ fn surrounding_points(element: #(Point, Point, Value)) -> List(Point) {
   [Point(start.x - 1, start.y), Point(end.x + 1, end.y), ..pts]
 }
 
+// Check if a symbol is in any of the positions given by the list of points
 fn has_symbol(pts: List(Point), symbols: dict.Dict(Point, Value)) -> Bool {
   list.any(pts, fn(p: Point) -> Bool {
     case dict.get(symbols, p) {
@@ -169,4 +188,31 @@ fn has_symbol(pts: List(Point), symbols: dict.Dict(Point, Value)) -> Bool {
       Error(_) -> False
     }
   })
+}
+
+// Find numbers that have symbols around them returning the list of
+// those numbers.
+fn values_adjacent(
+  elements: List(#(Point, Point, Value)),
+  symbols: dict.Dict(Point, Value),
+) -> List(Int) {
+  list.filter(elements, fn(val) -> Bool {
+    has_symbol(surrounding_points(val), symbols)
+  })
+  |> list.map(fn(val) -> Result(Int, Nil) {
+    case val {
+      #(_, _, Number(n)) -> Ok(n)
+      _ -> Error(Nil)
+    }
+  })
+  |> result.values
+}
+
+// Find the elements around a particular element
+fn gear_ratios(
+  potential: #(Point, Point, Value),
+  numbers: List(#(Point, Point, Value)),
+) -> List(Int) {
+  let gear = dict.from_list([#(potential.0, potential.2)])
+  values_adjacent(numbers, gear)
 }

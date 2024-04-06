@@ -32,7 +32,7 @@ pub fn solve_p1(lines: List(String)) -> String {
   list.map(lines, extract_numerals)
   |> list.map(two_digit_result)
   |> result.all
-  |> result.map(list.fold(_, from: 0, with: fn(b, a) { b + a }))
+  |> result.map(int.sum)
   |> result.map(int.to_string)
   |> result.unwrap("error running part 1")
 }
@@ -49,7 +49,7 @@ pub fn solve_p2(lines: List(String)) -> String {
   list.map(lines, extract_numbers)
   |> list.map(two_digit_result)
   |> result.all
-  |> result.map(list.fold(_, from: 0, with: fn(b, a) { b + a }))
+  |> result.map(int.sum)
   |> result.map(int.to_string)
   |> result.unwrap("error running part 2")
 }
