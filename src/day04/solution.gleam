@@ -27,13 +27,15 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   |> list.map(score)
   |> result.all
   |> result.map(fn(a: List(Int)) -> String { int.to_string(int.sum(a)) })
-  // Error("Unimplemented")
 }
 
 // Part 2
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
-  let _lines = lines
-  Error("Unimplemented")
+  list.map(lines, parse_line)
+  |> result.all
+  |> result.map(initialize_count)
+  |> result.map(expand_and_count(_, 0))
+  |> result.map(int.to_string)
 }
 
 fn parse_line(line: String) -> Result(#(List(Int), List(Int)), String) {
@@ -82,5 +84,32 @@ fn score(tpl: Result(#(List(Int), List(Int)), String)) -> Result(Int, String) {
       }
     }
     Error(v) -> Error(v)
+  }
+}
+
+fn count_matches(card: #(List(Int), List(Int))) -> Int {
+  let match_numbers = intersection(card.0, card.1)
+  list.length(match_numbers)
+}
+
+fn initialize_count(cards: List(#(List(Int), List(Int)))) -> List(#(Int, Int)) {
+  list.map(cards, count_matches)
+  |> list.map(fn(i: Int) -> #(Int, Int) { #(i, 1) })
+}
+
+fn expand_and_count(card_values: List(#(Int, Int)), acc: Int) -> Int {
+  case card_values {
+    [] -> acc
+    [first, ..rest] -> {
+      let matches = first.0
+      let copies = first.1
+      let #(head, tail) = list.split(rest, matches)
+      let newhead =
+        list.map(head, fn(a: #(Int, Int)) -> #(Int, Int) {
+          #(a.0, a.1 + copies)
+        })
+      let newlist = list.append(newhead, tail)
+      expand_and_count(newlist, copies + acc)
+    }
   }
 }
