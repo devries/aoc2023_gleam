@@ -204,7 +204,8 @@ fn range_conversion(
           let low = range.0
           let high = range.0 + range.1
           let low_location = find_location(low, start, length)
-          let high_location = find_location(high, start, length)
+          // high is a noninclusive max. So the last value of the range is high - 1
+          let high_location = find_location(high - 1, start, length)
 
           // All the cases for two ranges of points to intersect or not
           case #(low_location, high_location) {
