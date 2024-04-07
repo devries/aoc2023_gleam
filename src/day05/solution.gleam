@@ -2,7 +2,6 @@ import gleam/io
 import gleam/int
 import gleam/list
 import gleam/result
-// import gleam/set
 import gleam/string
 import aoc2023_gleam
 
@@ -159,6 +158,7 @@ fn min_list(values: List(Int)) -> Int {
   }
 }
 
+// Given the list of numbers for seeds, split them into ranges
 fn find_seed_ranges(
   seedlist: List(Int),
   acc: List(#(Int, Int)),
@@ -170,6 +170,7 @@ fn find_seed_ranges(
   }
 }
 
+// Points are either blow, within, or above a range, find out which
 type Location {
   Below
   Within
@@ -187,6 +188,9 @@ fn find_location(point: Int, start: Int, length: Int) -> Location {
   }
 }
 
+// Convert a single range through a single set of conversions.
+// Multiple ranges could be returned as different parts get
+// converted in different conversion bins.
 fn range_conversion(
   conversion: List(List(Int)),
   range: #(Int, Int),
@@ -202,6 +206,7 @@ fn range_conversion(
           let low_location = find_location(low, start, length)
           let high_location = find_location(high, start, length)
 
+          // All the cases for two ranges of points to intersect or not
           case #(low_location, high_location) {
             // no intersection - check, confused
             #(Below, Below) | #(Above, Above) ->
@@ -230,7 +235,7 @@ fn range_conversion(
               range_conversion(rest, ongoing_range, [transformed_range, ..acc])
             }
 
-            // Spans entire range
+            // Spans entire range, this needs 3 ranges to continue
             #(Below, Above) -> {
               let transformed_range = #(destination, length)
               let lower_ongoing_range = #(low, start - low)
@@ -259,6 +264,8 @@ fn range_conversion(
   }
 }
 
+// Convert an entire list of ranges through a single set of conversions.
+// This relies on the above function to do each point range.
 fn whole_range_conversion(
   conversion: List(List(Int)),
   ranges: List(#(Int, Int)),
@@ -276,6 +283,9 @@ fn whole_range_conversion(
   }
 }
 
+// Convert an entire list of ranges through an entire group of
+// conversions. This relies on the function above for each
+// conversion set.
 fn whole_range_conversion_series(
   conversion_series: List(List(List(Int))),
   ranges: List(#(Int, Int)),
