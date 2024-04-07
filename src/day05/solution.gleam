@@ -27,14 +27,17 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   let #(seedinfo, conversiontables) = list.split(sections, 1)
 
   // Get seed information out of seedinfo
-  use seedresult <- result.try(result.replace_error(
-    list.first(list.flatten(seedinfo)),
-    "Unable to parse seed line",
-  ))
-  use #(_, seedlist) <- result.try(result.replace_error(
-    string.split_once(seedresult, ": "),
-    "Unable to split " <> seedresult <> " on colon",
-  ))
+  use seedresult <- result.try({
+    list.flatten(seedinfo)
+    |> list.first
+    |> result.replace_error("Unable to find seed line")
+  })
+
+  use #(_, seedlist) <- result.try({
+    string.split_once(seedresult, ": ")
+    |> result.replace_error("Unable to split " <> seedresult <> " on colon")
+  })
+
   use seeds <- result.try(parse_numberlist(seedlist))
   io.debug(seeds)
 
