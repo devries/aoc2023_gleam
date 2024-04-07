@@ -24,7 +24,7 @@ pub fn main() {
 // Part 1
 pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   let sections = split_by_empty_strings(lines, [])
-  let #(seedinfo, conversiontables) = list.split(sections, 1)
+  let #(seedinfo, conversiontableinfo) = list.split(sections, 1)
 
   // Get seed information out of seedinfo
   use seedresult <- result.try({
@@ -39,18 +39,44 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   })
 
   use seeds <- result.try(parse_numberlist(seedlist))
-  io.debug(seeds)
 
   // get conversion tables out of conversiontables
-  list.map(conversiontables, list.map(_, parse_numberlist))
-  |> list.map(result.values)
-  |> list.map(io.debug)
+  let conversion_tables =
+    list.map(conversiontableinfo, list.map(_, parse_numberlist))
+    |> list.map(result.values)
 
-  Error("Unimplemented")
+  let smallest =
+    list.map(seeds, convert_series(conversion_tables, _))
+    |> result.values
+    |> min_list
+
+  Ok(int.to_string(smallest))
 }
 
 // Part 2
-pub fn solve_p2(_lines: List(String)) -> Result(String, String) {
+pub fn solve_p2(lines: List(String)) -> Result(String, String) {
+  let sections = split_by_empty_strings(lines, [])
+  let #(seedinfo, conversiontableinfo) = list.split(sections, 1)
+
+  // Get seed information out of seedinfo
+  use seedresult <- result.try({
+    list.flatten(seedinfo)
+    |> list.first
+    |> result.replace_error("Unable to find seed line")
+  })
+
+  use #(_, seedlist) <- result.try({
+    string.split_once(seedresult, ": ")
+    |> result.replace_error("Unable to split " <> seedresult <> " on colon")
+  })
+
+  use _seeds <- result.try(parse_numberlist(seedlist))
+
+  // get conversion tables out of conversiontables
+  let _conversion_tables =
+    list.map(conversiontableinfo, list.map(_, parse_numberlist))
+    |> list.map(result.values)
+
   Error("Unimplemented")
 }
 
@@ -78,4 +104,47 @@ fn parse_numberlist(numberlist: String) -> Result(List(Int), String) {
   |> result.replace_error(
     numberlist <> " is not a space separated list of integers",
   )
+}
+
+// Use conversion table to find value
+fn convert(conversion: List(List(Int)), value: Int) -> Result(Int, String) {
+  case conversion {
+    [] -> Ok(value)
+    [first, ..rest] -> {
+      case first {
+        [destination, start, length] -> {
+          let end = start + length
+          case value {
+            _ if value >= start && value < end ->
+              Ok(value + destination - start)
+            _ -> convert(rest, value)
+          }
+        }
+        _ -> Error("Bad conversion array")
+      }
+    }
+  }
+}
+
+// Use series of conversions to find value
+fn convert_series(
+  conversions: List(List(List(Int))),
+  seed: Int,
+) -> Result(Int, String) {
+  case conversions {
+    [] -> Ok(seed)
+    [first, ..rest] -> {
+      let newseed = convert(first, seed)
+      result.try(newseed, convert_series(rest, _))
+    }
+  }
+}
+
+// Find minimum from list
+fn min_list(values: List(Int)) -> Int {
+  case values {
+    [] -> 0
+    [only] -> only
+    [first, ..rest] -> list.fold(rest, first, int.min)
+  }
 }
