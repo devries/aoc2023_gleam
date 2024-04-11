@@ -57,7 +57,15 @@ pub fn pop(
   use #(newheap, distance, node) <- result.try(lheap.pop(queue.heap))
 
   let newqueue = Queue(heap: newheap, minmap: queue.minmap)
-  Ok(#(newqueue, distance, node))
+
+  // check if this is the lowest distance variant of this node
+  // if it is not go on to the next one. This eliminates leftover
+  // elements which were added before better ones were found.
+  let best_result = dict.get(queue.minmap, node)
+  case best_result {
+    Ok(#(best, _)) if best < distance -> pop(newqueue)
+    _ -> Ok(#(newqueue, distance, node))
+  }
 }
 
 pub fn get_path(
