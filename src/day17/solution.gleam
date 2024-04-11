@@ -43,13 +43,11 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
   ]
 
   let pqueue = dijkstra.push_list(dijkstra.new(), starting_conditions, None)
-  let endnode =
+  use endnode <- result.try({
     find_endpoint_part1(map, pqueue, endpoint)
     |> result.replace_error("Error in main loop")
-  case endnode {
-    Error(s) -> Error(s)
-    Ok(#(val, _)) -> Ok(int.to_string(val))
-  }
+  })
+  Ok(int.to_string(endnode.0))
 }
 
 // Part 2
@@ -72,13 +70,11 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
   ]
 
   let pqueue = dijkstra.push_list(dijkstra.new(), starting_conditions, None)
-  let endnode =
+  use endnode <- result.try({
     find_endpoint_part2(map, pqueue, endpoint)
     |> result.replace_error("Error in main loop")
-  case endnode {
-    Error(s) -> Error(s)
-    Ok(#(val, _)) -> Ok(int.to_string(val))
-  }
+  })
+  Ok(int.to_string(endnode.0))
 }
 
 type Point {
