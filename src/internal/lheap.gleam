@@ -58,20 +58,20 @@ pub fn new() -> Tree(element) {
   Null
 }
 
-pub fn insert(a: Tree(element), value: Int, payload: element) -> Tree(element) {
+pub fn push(a: Tree(element), value: Int, payload: element) -> Tree(element) {
   let b = Node(value, payload, 1, Null, Null)
   merge(a, b)
 }
 
-pub fn insert_list(
+pub fn push_list(
   a: Tree(element),
   values: List(#(Int, element)),
 ) -> Tree(element) {
   case values {
     [] -> a
     [first, ..rest] -> {
-      let n = insert(a, first.0, first.1)
-      insert_list(n, rest)
+      let n = push(a, first.0, first.1)
+      push_list(n, rest)
     }
   }
 }

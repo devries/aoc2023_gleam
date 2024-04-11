@@ -2,10 +2,11 @@ import gleam/dict
 import gleam/io
 import gleam/int
 import gleam/list
+import gleam/option.{type Option, None, Some}
 import gleam/result
 import gleam/string
 import aoc2023_gleam
-import internal/lheap
+import internal/dijkstra
 
 pub fn main() {
   let filename = "inputs/day17.txt"
@@ -41,9 +42,9 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
     #(0, Node(Point(0, 0), Down)),
   ]
 
-  let heap = lheap.insert_list(lheap.new(), starting_conditions)
+  let pqueue = dijkstra.push_list(dijkstra.new(), starting_conditions, None)
   let endnode =
-    find_endpoint_part1(map, heap, endpoint, dict.new())
+    find_endpoint_part1(map, pqueue, endpoint)
     |> result.replace_error("Error in main loop")
   case endnode {
     Error(s) -> Error(s)
@@ -70,9 +71,9 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
     #(0, Node(Point(0, 0), Down)),
   ]
 
-  let heap = lheap.insert_list(lheap.new(), starting_conditions)
+  let pqueue = dijkstra.push_list(dijkstra.new(), starting_conditions, None)
   let endnode =
-    find_endpoint_part2(map, heap, endpoint, dict.new())
+    find_endpoint_part2(map, pqueue, endpoint)
     |> result.replace_error("Error in main loop")
   case endnode {
     Error(s) -> Error(s)
@@ -160,11 +161,10 @@ fn cooling_along(
 
 fn find_endpoint_part1(
   map: dict.Dict(Point, Int),
-  heap: lheap.Tree(Node),
+  pqueue: dijkstra.Queue(Node),
   endpoint: Point,
-  minmap: dict.Dict(Node, Int),
 ) -> Result(#(Int, Node), Nil) {
-  use #(newheap, cooling, node) <- result.try(lheap.pop(heap))
+  use #(newpqueue, cooling, node) <- result.try(dijkstra.pop(pqueue))
 
   let pos = node.position
   let dir = node.direction
@@ -172,46 +172,28 @@ fn find_endpoint_part1(
     True -> Ok(#(cooling, node))
 
     False -> {
-      let best = dict.get(minmap, node)
-      case best {
-        Ok(n) if n < cooling ->
-          find_endpoint_part1(map, newheap, endpoint, minmap)
-        _ -> {
-          let newdirs = case dir {
-            Up | Down -> [Left, Right]
-            Left | Right -> [Up, Down]
-          }
-
-          let potentials =
-            list.map(newdirs, cooling_along(map, pos, _, 3, cooling))
-            |> list.flatten
-            |> list.filter(fn(next) {
-              let current = dict.get(minmap, next.1)
-              case current {
-                Ok(v) if next.0 >= v -> False
-                _ -> True
-              }
-            })
-
-          let newminmap =
-            list.fold(potentials, minmap, fn(m, n) { dict.insert(m, n.1, n.0) })
-
-          let newheap = lheap.insert_list(newheap, potentials)
-
-          find_endpoint_part1(map, newheap, endpoint, newminmap)
-        }
+      let newdirs = case dir {
+        Up | Down -> [Left, Right]
+        Left | Right -> [Up, Down]
       }
+
+      let potentials =
+        list.map(newdirs, cooling_along(map, pos, _, 3, cooling))
+        |> list.flatten
+
+      let newpqueue = dijkstra.push_list(newpqueue, potentials, Some(node))
+
+      find_endpoint_part1(map, newpqueue, endpoint)
     }
   }
 }
 
 fn find_endpoint_part2(
   map: dict.Dict(Point, Int),
-  heap: lheap.Tree(Node),
+  pqueue: dijkstra.Queue(Node),
   endpoint: Point,
-  minmap: dict.Dict(Node, Int),
 ) -> Result(#(Int, Node), Nil) {
-  use #(newheap, cooling, node) <- result.try(lheap.pop(heap))
+  use #(newpqueue, cooling, node) <- result.try(dijkstra.pop(pqueue))
 
   let pos = node.position
   let dir = node.direction
@@ -219,38 +201,21 @@ fn find_endpoint_part2(
     True -> Ok(#(cooling, node))
 
     False -> {
-      let best = dict.get(minmap, node)
-      case best {
-        Ok(n) if n < cooling ->
-          find_endpoint_part2(map, newheap, endpoint, minmap)
-        _ -> {
-          let newdirs = case dir {
-            Up | Down -> [Left, Right]
-            Left | Right -> [Up, Down]
-          }
-
-          let potentials =
-            list.map(newdirs, fn(d) {
-              cooling_along(map, pos, d, 10, cooling)
-              |> list.drop(3)
-            })
-            |> list.flatten
-            |> list.filter(fn(next) {
-              let current = dict.get(minmap, next.1)
-              case current {
-                Ok(v) if next.0 >= v -> False
-                _ -> True
-              }
-            })
-
-          let newminmap =
-            list.fold(potentials, minmap, fn(m, n) { dict.insert(m, n.1, n.0) })
-
-          let newheap = lheap.insert_list(newheap, potentials)
-
-          find_endpoint_part2(map, newheap, endpoint, newminmap)
-        }
+      let newdirs = case dir {
+        Up | Down -> [Left, Right]
+        Left | Right -> [Up, Down]
       }
+
+      let potentials =
+        list.map(newdirs, fn(d) {
+          cooling_along(map, pos, d, 10, cooling)
+          |> list.drop(3)
+        })
+        |> list.flatten
+
+      let newpqueue = dijkstra.push_list(newpqueue, potentials, Some(node))
+
+      find_endpoint_part2(map, newpqueue, endpoint)
     }
   }
 }
