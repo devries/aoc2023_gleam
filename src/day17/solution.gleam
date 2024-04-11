@@ -52,8 +52,32 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
 }
 
 // Part 2
-pub fn solve_p2(_lines: List(String)) -> Result(String, String) {
-  Error("Unimplemented")
+pub fn solve_p2(lines: List(String)) -> Result(String, String) {
+  use mapvalues <- result.try(parse_map(lines))
+
+  let flat_values = list.flatten(mapvalues)
+
+  let lp_result = list.last(flat_values)
+  use #(endpoint, _) <- result.try(result.replace_error(
+    lp_result,
+    "no points found",
+  ))
+
+  let map = dict.from_list(flat_values)
+
+  let starting_conditions = [
+    #(0, Node(Point(0, 0), Right)),
+    #(0, Node(Point(0, 0), Down)),
+  ]
+
+  let heap = lheap.insert_list(lheap.new(), starting_conditions)
+  let endnode =
+    find_endpoint_part2(map, heap, endpoint, dict.new())
+    |> result.replace_error("Error in main loop")
+  case endnode {
+    Error(s) -> Error(s)
+    Ok(#(val, _)) -> Ok(int.to_string(val))
+  }
 }
 
 type Point {
@@ -175,6 +199,56 @@ fn find_endpoint_part1(
           let newheap = lheap.insert_list(newheap, potentials)
 
           find_endpoint_part1(map, newheap, endpoint, newminmap)
+        }
+      }
+    }
+  }
+}
+
+fn find_endpoint_part2(
+  map: dict.Dict(Point, Int),
+  heap: lheap.Tree(Node),
+  endpoint: Point,
+  minmap: dict.Dict(Node, Int),
+) -> Result(#(Int, Node), Nil) {
+  use #(newheap, cooling, node) <- result.try(lheap.pop(heap))
+
+  let pos = node.position
+  let dir = node.direction
+  case pos == endpoint {
+    True -> Ok(#(cooling, node))
+
+    False -> {
+      let best = dict.get(minmap, node)
+      case best {
+        Ok(n) if n < cooling ->
+          find_endpoint_part2(map, newheap, endpoint, minmap)
+        _ -> {
+          let newdirs = case dir {
+            Up | Down -> [Left, Right]
+            Left | Right -> [Up, Down]
+          }
+
+          let potentials =
+            list.map(newdirs, fn(d) {
+              cooling_along(map, pos, d, 10, cooling)
+              |> list.drop(3)
+            })
+            |> list.flatten
+            |> list.filter(fn(next) {
+              let current = dict.get(minmap, next.1)
+              case current {
+                Ok(v) if next.0 >= v -> False
+                _ -> True
+              }
+            })
+
+          let newminmap =
+            list.fold(potentials, minmap, fn(m, n) { dict.insert(m, n.1, n.0) })
+
+          let newheap = lheap.insert_list(newheap, potentials)
+
+          find_endpoint_part2(map, newheap, endpoint, newminmap)
         }
       }
     }
