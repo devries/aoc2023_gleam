@@ -2,7 +2,7 @@ import gleam/dict
 import gleam/io
 import gleam/int
 import gleam/list
-import gleam/option.{type Option, None, Some}
+import gleam/option.{None, Some}
 import gleam/result
 import gleam/string
 import aoc2023_gleam
@@ -198,7 +198,13 @@ fn find_endpoint_part2(
   let pos = node.position
   let dir = node.direction
   case pos == endpoint {
-    True -> Ok(#(cooling, node))
+    True -> {
+      // case dijkstra.get_path(pqueue, node) {
+      //   Error(Nil) -> []
+      //   Ok(l) -> list.map(l, io.debug)
+      // }
+      Ok(#(cooling, node))
+    }
 
     False -> {
       let newdirs = case dir {

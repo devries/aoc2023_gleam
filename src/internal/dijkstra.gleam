@@ -59,3 +59,22 @@ pub fn pop(
   let newqueue = Queue(heap: newheap, minmap: queue.minmap)
   Ok(#(newqueue, distance, node))
 }
+
+pub fn get_path(
+  queue: Queue(element),
+  ending: element,
+) -> Result(List(element), Nil) {
+  get_path_acc(queue, ending, [ending])
+}
+
+fn get_path_acc(
+  queue: Queue(element),
+  ending: element,
+  acc: List(element),
+) -> Result(List(element), Nil) {
+  case dict.get(queue.minmap, ending) {
+    Error(Nil) -> Error(Nil)
+    Ok(#(_, None)) -> Ok(acc)
+    Ok(#(_, Some(node))) -> get_path_acc(queue, node, [node, ..acc])
+  }
+}
