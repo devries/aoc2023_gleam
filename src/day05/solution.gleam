@@ -1,9 +1,9 @@
-import gleam/io
+import aoc2023_gleam
 import gleam/int
+import gleam/io
 import gleam/list
 import gleam/result
 import gleam/string
-import aoc2023_gleam
 
 pub fn main() {
   let filename = "inputs/day05.txt"
@@ -181,10 +181,10 @@ fn find_location(point: Int, start: Int, length: Int) -> Location {
   let below_start = point < start
   let below_end = point < start + length
 
-  case #(below_start, below_end) {
-    #(True, _) -> Below
-    #(False, True) -> Within
-    #(False, False) -> Above
+  case below_start, below_end {
+    True, _ -> Below
+    False, True -> Within
+    False, False -> Above
   }
 }
 
@@ -208,26 +208,25 @@ fn range_conversion(
           let high_location = find_location(high - 1, start, length)
 
           // All the cases for two ranges of points to intersect or not
-          case #(low_location, high_location) {
+          case low_location, high_location {
             // no intersection - check, confused
-            #(Below, Below) | #(Above, Above) ->
-              range_conversion(rest, range, acc)
+            Below, Below | Above, Above -> range_conversion(rest, range, acc)
 
             // entirely within
-            #(Within, Within) -> {
+            Within, Within -> {
               let newrange = #(range.0 + destination - start, range.1)
               Ok([newrange, ..acc])
             }
 
             // Intersects bottom of conversion range
-            #(Below, Within) -> {
+            Below, Within -> {
               let transformed_range = #(destination, high - start)
               let ongoing_range = #(low, start - low)
               range_conversion(rest, ongoing_range, [transformed_range, ..acc])
             }
 
             // Intersects top of conversion range
-            #(Within, Above) -> {
+            Within, Above -> {
               let transformed_range = #(
                 low + destination - start,
                 start + length - low,
@@ -237,7 +236,7 @@ fn range_conversion(
             }
 
             // Spans entire range, this needs 3 ranges to continue
-            #(Below, Above) -> {
+            Below, Above -> {
               let transformed_range = #(destination, length)
               let lower_ongoing_range = #(low, start - low)
               let higher_ongoing_range = #(
@@ -256,7 +255,7 @@ fn range_conversion(
               Ok(list.append(lower_conversions, upper_conversions))
             }
 
-            _ -> Error("Unexpected ordering")
+            _, _ -> Error("Unexpected ordering")
           }
         }
         _ -> Error("Bad conversion list")
