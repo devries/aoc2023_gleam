@@ -23,7 +23,7 @@ pub fn main() {
 
 // Part 1
 pub fn solve_p1(lines: List(String)) -> Result(String, String) {
-  use bricks <- result.try(
+  use bricks <- result.map(
     list.map(lines, parse_line)
     |> result.all,
   )
@@ -37,16 +37,13 @@ pub fn solve_p1(lines: List(String)) -> Result(String, String) {
     protected_bricks(dropped_bricks, set.new())
     |> set.size
 
-  let result =
-    list.length(dropped_bricks) - protected_count
-    |> int.to_string
-
-  Ok(result)
+  list.length(dropped_bricks) - protected_count
+  |> int.to_string
 }
 
 // Part 2
 pub fn solve_p2(lines: List(String)) -> Result(String, String) {
-  use bricks <- result.try(
+  use bricks <- result.map(
     list.map(lines, parse_line)
     |> result.all,
   )
@@ -62,17 +59,15 @@ pub fn solve_p2(lines: List(String)) -> Result(String, String) {
 
   // This is slow, but it removes the one brick, then sorts the bricks
   // and counts the number that drop with that brick removed
-  let result =
-    set.to_list(bricks_to_destroy)
-    |> list.map(fn(destroyed_brick) {
-      set.delete(brick_set, destroyed_brick)
-      |> set.to_list
-      |> list.sort(fn(b1, b2) { int.compare(b1.zmin, b2.zmin) })
-      |> count_dropped_bricks([], 0)
-    })
-    |> int.sum
-    |> int.to_string
-  Ok(result)
+  set.to_list(bricks_to_destroy)
+  |> list.map(fn(destroyed_brick) {
+    set.delete(brick_set, destroyed_brick)
+    |> set.to_list
+    |> list.sort(fn(b1, b2) { int.compare(b1.zmin, b2.zmin) })
+    |> count_dropped_bricks([], 0)
+  })
+  |> int.sum
+  |> int.to_string
 }
 
 type Point {
