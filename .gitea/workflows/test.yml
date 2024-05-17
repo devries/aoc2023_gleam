@@ -21,6 +21,7 @@ jobs:
           otp-version: "26.0.2"
           gleam-version: "1.1.0"
           rebar3-version: "3"
+          github-token: ${{ secrets.TOKEN_GITHUB }}
           # elixir-version: "1.15.4"
       - run: gleam deps download
       - run: gleam test
