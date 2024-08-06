@@ -22,10 +22,10 @@ pub fn main() {
 
 // Part 1
 pub fn solve_p1(lines: List(String)) -> Result(String, String) {
-  list.map(lines, parse_line)
-  |> result.all
-  |> result.map(accumulate_connections(_, dict.new()))
-  |> result.map(pretty_print)
+  use parsed_data <- result.try({ list.map(lines, parse_line) |> result.all })
+
+  accumulate_connections(parsed_data, dict.new())
+  |> pretty_print
 
   Error("Incomplete")
 }
