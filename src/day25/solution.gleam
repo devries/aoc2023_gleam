@@ -22,7 +22,10 @@ pub fn main() {
 
 // Part 1
 pub fn solve_p1(lines: List(String)) -> Result(String, String) {
-  use parsed_data <- result.try({ list.map(lines, parse_line) |> result.all })
+  use parsed_data <- result.try({
+    list.map(lines, parse_line)
+    |> result.all
+  })
 
   accumulate_connections(parsed_data, dict.new())
   |> pretty_print
