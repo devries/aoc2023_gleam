@@ -4,7 +4,9 @@ import gleam/string
 import simplifile
 
 pub fn main() {
-  io.println("Hello from aoc2023_gleam!")
+  io.println(
+    "Use \"gleam run -m dayXX/solution\" to run the solution\nfrom a particular day.\n\nFor example:\n    gleam run -m day01/solution",
+  )
 }
 
 /// Read Advent of Code input file and split into a list of lines.
